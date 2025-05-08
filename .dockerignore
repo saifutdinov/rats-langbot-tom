@@ -1,0 +1,28 @@
+# Golang
+*.exe
+*.test
+*.out
+*.log
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Git
+.git
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Binaries
+bot
+
+# Editor settings
+.idea/
+.vscode/
+
+# Others
+Makefile
+README.md
