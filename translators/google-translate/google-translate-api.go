@@ -1,14 +1,15 @@
-package main
+package googletranslate
 
 import (
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
+	"saifutdinov/rats-langbot-tom/config"
 	"strings"
 )
 
-func googleTranslate(text, fromLang, toLang string) string {
+func GoogleTranslate(text, fromLang, toLang string) string {
 	endpoint := "https://translation.googleapis.com/language/translate/v2"
 
 	// Если fromLang = "auto", Google просто не указывает source
@@ -19,7 +20,7 @@ func googleTranslate(text, fromLang, toLang string) string {
 		data.Set("source", fromLang)
 	}
 	data.Set("format", "text")
-	data.Set("key", config["GOOGLE_API_KEY"])
+	data.Set("key", config.GetValue("GOOGLE_API_KEY"))
 
 	req, err := http.NewRequest("POST", endpoint, strings.NewReader(data.Encode()))
 	if err != nil {

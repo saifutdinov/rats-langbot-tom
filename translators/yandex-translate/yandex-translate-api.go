@@ -1,18 +1,19 @@
-package main
+package yandextranslate
 
 import (
 	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
+	"saifutdinov/rats-langbot-tom/config"
 )
 
-func yandexTranslateCustom(text, fromLang, toLang string) string {
+func YandexTranslateCustom(text, fromLang, toLang string) string {
 	payload := map[string]interface{}{
 		"sourceLanguageCode": fromLang,
 		"targetLanguageCode": toLang,
 		"texts":              []string{text},
-		"folderId":           config["YANDEX_FOLDER_ID"],
+		"folderId":           config.GetValue("YANDEX_FOLDER_ID"),
 	}
 
 	body, _ := json.Marshal(payload)

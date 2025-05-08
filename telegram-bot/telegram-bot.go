@@ -1,10 +1,14 @@
-package main
+package telegrambot
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"saifutdinov/rats-langbot-tom/config"
+	googletranslate "saifutdinov/rats-langbot-tom/translators/google-translate"
+	yandextranslate "saifutdinov/rats-langbot-tom/translators/yandex-translate"
 	"strings"
 )
 
@@ -24,6 +28,7 @@ type Update struct {
 }
 
 func StartTelegramBot() {
+	log.Println("Waiting for magic...")
 	offset := 0
 	for {
 		updates := getUpdates(offset)
@@ -35,7 +40,7 @@ func StartTelegramBot() {
 }
 
 func getUpdates(offset int) []Update {
-	url := fmt.Sprintf("%s%s/getUpdates?offset=%d", telegramAPI, config["TELEGRAM_TOKEN"], offset)
+	url := fmt.Sprintf("%s%s/getUpdates?offset=%d", telegramAPI, config.GetValue("TELEGRAM_TOKEN"), offset)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil
@@ -57,16 +62,25 @@ func sendMessage(chatID int64, text string) {
 		"parse_mode": "Markdown",
 	}
 	b, _ := json.Marshal(body)
-	http.Post(fmt.Sprintf("%s%s/sendMessage", telegramAPI, config["TELEGRAM_TOKEN"]), "application/json", bytes.NewBuffer(b))
+	http.Post(fmt.Sprintf("%s%s/sendMessage", telegramAPI, config.GetValue("TELEGRAM_TOKEN")), "application/json", bytes.NewBuffer(b))
 }
 
 func handleCommand(update Update) {
-	if update.Message.ReplyToMessage == nil {
-		sendMessage(update.Message.Chat.ID, "Пожалуйста, используйте команду в ответ на сообщение.")
-		return
+	if update.Message.Text == "/help" {
+		sendMessage(update.Message.Chat.ID, `
+			*Команды:*
+			- /translate yandex — перевести сообщение
+			- /translate ru-en google — с языками
+			- /pool — сгенерировать вопрос
+			`)
 	}
 
 	parts := strings.Fields(update.Message.Text)
+
+	if len(parts) > 0 && parts[0] != "/translate" {
+		return
+	}
+
 	if len(parts) < 2 {
 		sendMessage(update.Message.Chat.ID, "Формат: /translate [ru-en] [yandex|google]")
 		return
@@ -97,9 +111,9 @@ func handleCommand(update Update) {
 	var translated string
 	switch engine {
 	case "yandex":
-		translated = yandexTranslateCustom(original, fromLang, toLang)
+		translated = yandextranslate.YandexTranslateCustom(original, fromLang, toLang)
 	case "google":
-		translated = googleTranslate(original, fromLang, toLang)
+		translated = googletranslate.GoogleTranslate(original, fromLang, toLang)
 	default:
 		translated = "Неизвестный движок перевода: " + engine
 	}

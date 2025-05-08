@@ -1,21 +1,27 @@
-package main
+package config
 
 import (
 	"bufio"
 	"os"
 	"strings"
+	"sync"
 )
 
-var config map[string]string
+var mx *sync.RWMutex
+var configurations map[string]string
 
 func LoadEnv() {
-	config = make(map[string]string)
+	mx = new(sync.RWMutex)
+	configurations = make(map[string]string)
+
 	file, err := os.Open(".env")
 	if err != nil {
 		panic("Не найден файл .env")
 	}
 	defer file.Close()
 
+	mx.Lock()
+	defer mx.Unlock()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -24,7 +30,17 @@ func LoadEnv() {
 		}
 		parts := strings.SplitN(line, "=", 2)
 		if len(parts) == 2 {
-			config[parts[0]] = parts[1]
+			configurations[parts[0]] = parts[1]
 		}
 	}
+}
+
+func GetValue(envkey string) string {
+	mx.RLock()
+	defer mx.RUnlock()
+	v, ok := configurations[envkey]
+	if !ok {
+		return ""
+	}
+	return v
 }

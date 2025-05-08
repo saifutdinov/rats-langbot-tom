@@ -1,4 +1,4 @@
-package main
+package yandextranslate
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"saifutdinov/rats-langbot-tom/config"
 	"time"
 )
 
@@ -20,7 +21,7 @@ func getValidIAMToken() string {
 	token := loadIAMTokenFromFile()
 
 	if token == nil || time.Now().After(token.ExpiresAt) {
-		newToken := requestNewIAMToken(config["YANDEX_OAUTH_TOKEN"])
+		newToken := requestNewIAMToken(config.GetValue("YANDEX_OAUTH_TOKEN"))
 		if newToken != nil {
 			saveIAMTokenToFile(newToken)
 			return newToken.Token
