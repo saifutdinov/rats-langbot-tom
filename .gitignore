@@ -1,1 +1,6 @@
+# system
+.DS_Store
+
+# environment data
 .env
+iam-token.json
